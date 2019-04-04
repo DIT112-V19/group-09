@@ -5,7 +5,7 @@ A room mapping device that measures the dimensions of a room or a space within a
 
 
 ## Why?   
-Makes it easier to visualise the plan of a room for renovating purposes or floor plans for real estate agents or home owners.
+Makes it easier to visualise the plan of a room for renovating purposes or floor plans for users such as real estate agents or home owners.
 
 
 ## How?   
