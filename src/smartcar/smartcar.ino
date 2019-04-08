@@ -1,4 +1,7 @@
 #include <Smartcar.h>
+#include <SoftwareSerial.h>
+
+SoftwareSerial BTserial(15, 14); // RX | TX
 
 BrushedMotor leftMotor(8, 10, 9);
 BrushedMotor rightMotor(12, 13, 11);
@@ -21,11 +24,12 @@ int SPEED = 20;
 
 void setup() {
   Serial.begin(9600); // Starting Serial Terminal
+  BTserial.begin(9600);
 }
 
 void loop()
 {
-  //printSonarInCm(sonar_ping, 300);
+  
   int distance = front.getDistance();
   if(distance <= 20 && distance != 0)
   {
@@ -42,6 +46,7 @@ void loop()
 
 void handleBluetooth(){
 
-  Serial.println("HI MOM");
+  BTserial.print("HI MOM");
+  delay(50);
 
 }
