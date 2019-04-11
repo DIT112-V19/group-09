@@ -14,13 +14,17 @@ DistanceCar car(control, leftOdometer, rightOdometer);
 const int leftOdometer = 2;
 const int rightOdometer = 3;
 
-const int trigPin = 6; // Trigger Pin of Ultrasonic Sensor
-const int echoPin = 7; // Echo Pin of Ultrasonic Sensor
+const int trigPin = 6; // Front Trigger Pin of Ultrasonic Sensor
+const int echoPin = 7; // Front Echo Pin of Ultrasonic Sensor
+
+const int trigPinSide = 10; // Side Trigger Pin of Ultrasonic Sensor
+const int echoPinSide = 9; // Side Echo Pin of Ultrasonic Sensor
 
 int state = 0;
 
 const unsigned int MAX_DISTANCE = 100;
 SR04 front(trigPin, echoPin, MAX_DISTANCE);
+SR04 side(trigPinSide, echoPinSide, MAX_DISTANCE);
 
 int SPEED = 20;
 
@@ -32,7 +36,13 @@ void setup() {
 
 void loop()
 {
-  
+  handleBluetooth();
+  handleObstacle();
+  handleSideMovements();
+}
+
+void handleObstacle()
+{
   int distance = front.getDistance();
   if(distance <= 20 && distance != 0)
   {
@@ -42,9 +52,22 @@ void loop()
   {
     car.setSpeed(SPEED);
   }
+}
 
-  handleBluetooth();
-  
+void handleSideMovements()
+{
+  int wallDistance = 30;
+  int distance = side.getDistance();
+  if(distance <= wallDistance && distance != 0)
+  {
+    ///TODO: turn left
+  }
+  else if(distance > wallDistance)
+  {
+    ///TODO: turn right
+  }else{
+    //MALFUNCTION !?
+  }
 }
 
 void handleBluetooth(){
