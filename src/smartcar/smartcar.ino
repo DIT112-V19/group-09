@@ -6,8 +6,10 @@ SoftwareSerial BTserial(15, 14); // RX | TX
 BrushedMotor leftMotor(8, 10, 9);
 BrushedMotor rightMotor(12, 13, 11);
 DifferentialControl control(leftMotor, rightMotor);
+DirectionlessOdometer leftOdometer(110);
+DirectionlessOdometer rightOdometer(120);
 
-SimpleCar car(control);
+DistanceCar car(control, leftOdometer, rightOdometer);
 
 const int leftOdometer = 2;
 const int rightOdometer = 3;
@@ -25,6 +27,7 @@ int SPEED = 20;
 void setup() {
   Serial.begin(9600); // Starting Serial Terminal
   BTserial.begin(9600);
+  car.enableCruiseControl();
 }
 
 void loop()
