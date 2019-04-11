@@ -17,8 +17,8 @@ const int rightOdometer = 3;
 const int trigPin = 6; // Front Trigger Pin of Ultrasonic Sensor
 const int echoPin = 7; // Front Echo Pin of Ultrasonic Sensor
 
-const int trigPinSide = 10; // Side Trigger Pin of Ultrasonic Sensor
-const int echoPinSide = 9; // Side Echo Pin of Ultrasonic Sensor
+const int trigPinSide = 9; // Side Trigger Pin of Ultrasonic Sensor
+const int echoPinSide = 10; // Side Echo Pin of Ultrasonic Sensor
 
 int state = 0;
 
@@ -57,16 +57,17 @@ void handleObstacle()
 void handleSideMovements()
 {
   int wallDistance = 30;
-  int distance = side.getDistance();
-  if(distance <= wallDistance && distance != 0)
+  int sideDistance = side.getDistance();
+  if(sideDistance <= wallDistance && sideDistance != 0)
   {
     ///TODO: turn left
+    car.setAngle(-5);
   }
-  else if(distance > wallDistance)
+  
+  if(sideDistance > wallDistance && sideDistance != 0)
   {
     ///TODO: turn right
-  }else{
-    //MALFUNCTION !?
+    car.setAngle(5);
   }
 }
 
