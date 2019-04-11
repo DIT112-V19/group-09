@@ -1,7 +1,4 @@
 #include <Smartcar.h>
-#include <SoftwareSerial.h>
-
-SoftwareSerial BTserial(15, 14); // RX | TX
 
 BrushedMotor leftMotor(8, 10, 9);
 BrushedMotor rightMotor(12, 13, 11);
@@ -11,47 +8,46 @@ DirectionlessOdometer rightOdometer(120);
 
 DistanceCar car(control, leftOdometer, rightOdometer);
 
-const int leftOdometer = 2;
-const int rightOdometer = 3;
-
-const int trigPin = 6; // Front Trigger Pin of Ultrasonic Sensor
-const int echoPin = 7; // Front Echo Pin of Ultrasonic Sensor
-
+//GY50 gyro(10);
+const int leftOdometerPin = 2;
+const int rightOdometerPin = 3;
+const int trigPinFront = 6; // Front Trigger Pin of Ultrasonic Sensor
+const int echoPinFront = 7; // Front Echo Pin of Ultrasonic Sensor
 const int trigPinSide = 10; // Side Trigger Pin of Ultrasonic Sensor
-const int echoPinSide = 9; // Side Echo Pin of Ultrasonic Sensor
-
-int state = 0;
+const int echoPimSide = 9; // Side Echo Pin of Ultrasonic Sensor
 
 const unsigned int MAX_DISTANCE = 100;
-SR04 front(trigPin, echoPin, MAX_DISTANCE);
+SR04 front(trigPinFront, echoPinFront, MAX_DISTANCE);
 SR04 side(trigPinSide, echoPinSide, MAX_DISTANCE);
 
-int SPEED = 20;
+int SPEED = 30;
 
 void setup() {
   Serial.begin(9600); // Starting Serial Terminal
-  BTserial.begin(9600);
   car.enableCruiseControl();
 }
 
 void loop()
 {
-  handleBluetooth();
-  handleObstacle();
-  handleSideMovements();
+handleObstacle();
+handleSideMovements()
+
 }
 
 void handleObstacle()
 {
   int distance = front.getDistance();
-  if(distance <= 20 && distance != 0)
+  if(distance <= 40 && distance != 0)
   {
-    car.setSpeed(0);
+    car.setSpeed(30);
+    //car.setAngle(180);
+    
   }
   else
   {
     car.setSpeed(SPEED);
   }
+  
 }
 
 void handleSideMovements()
@@ -68,11 +64,5 @@ void handleSideMovements()
   }else{
     //MALFUNCTION !?
   }
-}
-
-void handleBluetooth(){
-
-  BTserial.print("HI MOM");
-  delay(50);
-
+  
 }
