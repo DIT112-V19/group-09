@@ -11,40 +11,63 @@ DirectionlessOdometer rightOdometer(120);
 
 DistanceCar car(control, leftOdometer, rightOdometer);
 
-const int leftOdometer = 2;
-const int rightOdometer = 3;
+//const int leftOdometer = 2;
+//const int rightOdometer = 3;
 
-const int trigPin = 6; // Trigger Pin of Ultrasonic Sensor
-const int echoPin = 7; // Echo Pin of Ultrasonic Sensor
+const int trigPin = 4; // Front Trigger Pin of Ultrasonic Sensor
+const int echoPin = 5; // Front Echo Pin of Ultrasonic Sensor
+
+const int trigPinSide = 6; // Side Trigger Pin of Ultrasonic Sensor
+const int echoPinSide = 7; // Side Echo Pin of Ultrasonic Sensor
 
 int state = 0;
 
 const unsigned int MAX_DISTANCE = 100;
 SR04 front(trigPin, echoPin, MAX_DISTANCE);
+SR04 side(trigPinSide, echoPinSide, MAX_DISTANCE);
 
-int SPEED = 20;
+int SPEED = 30;
+int frontDistance;
+int sideDistance;
+int wallDistance =10;
 
 void setup() {
   Serial.begin(9600); // Starting Serial Terminal
   BTserial.begin(9600);
-  car.enableCruiseControl();
 }
 
 void loop()
 {
-  
-  int distance = front.getDistance();
-  if(distance <= 20 && distance != 0)
-  {
+  frontDistance = front.getDistance();
+  sideDistance = side.getDistance();
+  //Serial.print(frontDistance);
+  //Serial.print(" ");
+  //Serial.println(sideDistance);
+  //handleBluetooth();
+  movement();
+}
+
+void movement()
+{  
+  if(frontDistance < 20 && frontDistance != 0) {
+    //Serial.println("stopped");
     car.setSpeed(0);
   }
-  else
+  else if(sideDistance <= (wallDistance + 3) && sideDistance >= wallDistance) 
   {
-    car.setSpeed(SPEED);
+    driveF();
+    //Serial.println("front");
   }
-
-  handleBluetooth();
-  
+  else if(sideDistance < wallDistance && sideDistance != 0)
+  {
+    //Serial.println("left");
+    driveL();
+  }
+  else if(sideDistance > (wallDistance + 3) && sideDistance != 0)
+  {
+    //Serial.println("right");
+    driveR();
+  }
 }
 
 void handleBluetooth(){
@@ -52,4 +75,27 @@ void handleBluetooth(){
   BTserial.print("HI MOM");
   delay(50);
 
+}
+
+void driveF()
+{
+  if(car.getSpeed() != SPEED)
+  car.setSpeed(SPEED);
+}
+
+void driveB()
+{
+  car.setSpeed(-SPEED);
+}
+
+void driveR()
+{
+  car.setAngle(20);
+  driveF();
+}
+
+void driveL()
+{
+  car.setAngle(-20);
+  driveF();
 }
