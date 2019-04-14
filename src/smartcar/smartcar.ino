@@ -20,16 +20,24 @@ const int echoPin = 5; // Front Echo Pin of Ultrasonic Sensor
 const int trigPinSide = 6; // Side Trigger Pin of Ultrasonic Sensor
 const int echoPinSide = 7; // Side Echo Pin of Ultrasonic Sensor
 
-int state = 0;
-
 const unsigned int MAX_DISTANCE = 100;
 SR04 front(trigPin, echoPin, MAX_DISTANCE);
 SR04 side(trigPinSide, echoPinSide, MAX_DISTANCE);
 
+enum CARSTATE
+{
+  STOPPED,
+  DRIVING,
+  TURN_RIGHT,
+  TURN_LEFT
+};
+
+CARSTATE state = DRIVING;
+
 int SPEED = 30;
 int frontDistance;
 int sideDistance;
-int wallDistance =10;
+int wallDistance = 10;
 
 void setup() {
   Serial.begin(9600); // Starting Serial Terminal
@@ -40,18 +48,52 @@ void loop()
 {
   frontDistance = front.getDistance();
   sideDistance = side.getDistance();
+  
+  switch(state)
+  {
+    case STOPPED: 
+      Serial.println("Stopped");
+      // TODO Fix bad code
+      if (frontDistance > 5)
+        state = DRIVING;
+      car.setSpeed(0);
+      break;
+    case DRIVING:
+      Serial.println("Driving");
+      movement();
+      break;
+    case TURN_LEFT:
+      Serial.println("Left");
+      turn(-90);
+      break;
+    case TURN_RIGHT:
+      Serial.println("Right");
+      turn(90);
+      break;
+  }
+
   //Serial.print(frontDistance);
   //Serial.print(" ");
   //Serial.println(sideDistance);
   //handleBluetooth();
-  movement();
+  //movement();
 }
 
 void movement()
 {  
-  if(frontDistance < 20 && frontDistance != 0) {
-    //Serial.println("stopped");
-    car.setSpeed(0);
+  driveF();
+  if(frontDistance <= 5 && frontDistance != 0)
+    state = STOPPED;
+  else if(frontDistance < 40 && frontDistance != 0)
+  {
+    if(sideDistance > 50)
+    {
+      state = TURN_RIGHT;
+    }
+    else
+    {
+      state = TURN_LEFT;
+    }
   }
   else if(sideDistance <= (wallDistance + 3) && sideDistance >= wallDistance) 
   {
@@ -68,6 +110,19 @@ void movement()
     //Serial.println("right");
     driveR();
   }
+}
+
+void turn(int angle)
+{
+  car.setSpeed(30);
+  car.setAngle(angle);
+  for(int i = 0; i < 1000; i++)
+  {
+    if (frontDistance <= 5 && frontDistance != 0)
+      state = STOPPED;
+    delay(1);
+  }
+  state = DRIVING;
 }
 
 void handleBluetooth(){
