@@ -21,6 +21,10 @@ class fragment_manualcontrols : Fragment() {
         return view
     }
 
+    fun handleBluetooth(){
+
+    }
+
     fun handleInput(x: Int, y: Int, width: Int, height: Int){
         if(isInBox(x, y, width, height, 1, 1)){
             Log.d("APP", "Forward-left");
@@ -45,7 +49,7 @@ class fragment_manualcontrols : Fragment() {
         }
     }
 
-    fun isInBox(x: Int, y: Int, width: Int, height: Int, widthBox: Int, heightBox: Int): Boolean{
+    fun isInBox(x: Int, y: Int, width: Int, height: Int, widthBox: Int, heightBox: Int): Boolean {
         return x > ((width / 3) * (widthBox - 1)) && x < ((width / 3) * (widthBox)) && y > ((height / 3) * (heightBox - 1)) && y < ((height / 3) * (heightBox))
     }
 

@@ -5,6 +5,11 @@ import android.support.design.widget.BottomNavigationView
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import me.aflak.bluetooth.Bluetooth
+import android.bluetooth.BluetoothDevice
+import android.util.Log
+import me.aflak.bluetooth.DeviceCallback
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,6 +36,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val bluetooth = Bluetooth(this@MainActivity)
+
+        bluetooth.setDeviceCallback(object : DeviceCallback {
+            override fun onDeviceConnected(device: BluetoothDevice) {Log.d("BLUETOOTH", device.name)}
+            override fun onDeviceDisconnected(device: BluetoothDevice, message: String) {Log.d("BLUETOOTH", message)}
+            override fun onMessage(message: String) {Log.d("BLUETOOTH", message)}
+            override fun onError(message: String) {Log.d("BLUETOOTH", message)}
+            override fun onConnectError(device: BluetoothDevice, message: String) {Log.d("BLUETOOTH", message)}
+        })
 
         navigation.itemIconTintList = resources.getColorStateList(R.color.colorWhite)
         navigation.itemTextColor = resources.getColorStateList(R.color.colorWhite)
