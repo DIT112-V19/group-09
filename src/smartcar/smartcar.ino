@@ -2,14 +2,16 @@
 #include <SoftwareSerial.h>
 
 SoftwareSerial BTserial(15, 14); // RX | TX
+const int GYROSCOPE_OFFSET = 18;
 
 BrushedMotor leftMotor(8, 10, 9);
 BrushedMotor rightMotor(12, 13, 11);
 DifferentialControl control(leftMotor, rightMotor);
 DirectionlessOdometer leftOdometer(110);
 DirectionlessOdometer rightOdometer(120);
+GY50 gyro(GYROSCOPE_OFFSET);
 
-DistanceCar car(control, leftOdometer, rightOdometer);
+SmartCar car(control, gyro, leftOdometer, rightOdometer);
 
 //const int leftOdometer = 2;
 //const int rightOdometer = 3;
@@ -39,13 +41,15 @@ int frontDistance;
 int sideDistance;
 int wallDistance = 10;
 
-void setup() {
+void setup()
+{
   Serial.begin(9600); // Starting Serial Terminal
   BTserial.begin(9600);
 }
 
 void loop()
 {
+  gyro.update();
   frontDistance = front.getDistance();
   sideDistance = side.getDistance();
   
@@ -72,9 +76,6 @@ void loop()
       break;
   }
 
-  //Serial.print(frontDistance);
-  //Serial.print(" ");
-  //Serial.println(sideDistance);
   //handleBluetooth();
   //movement();
 }
@@ -114,22 +115,15 @@ void movement()
 
 void turn(int angle)
 {
-  car.setSpeed(30);
-  car.setAngle(angle);
-  for(int i = 0; i < 1000; i++)
-  {
-    if (frontDistance <= 5 && frontDistance != 0)
-      state = STOPPED;
-    delay(1);
-  }
+  car.setSpeed(0);
+  rotateOnSpot(angle, 30);
   state = DRIVING;
-}
+} 
 
-void handleBluetooth(){
-
+void handleBluetooth()
+{
   BTserial.print("HI MOM");
   delay(50);
-
 }
 
 void driveF()
@@ -154,3 +148,32 @@ void driveL()
   car.setAngle(-20);
   driveF();
 }
+
+void rotateOnSpot(int targetDegrees, int speed) {
+  speed = smartcarlib::utils::getAbsolute(speed);
+  targetDegrees %= 360; //put it on a (-360,360) scale
+  if (!targetDegrees) return; //if the target degrees is 0, don't bother doing anything
+  /* Let's set opposite speed on each side of the car, so it rotates on spot */
+  if (targetDegrees > 0) { //positive value means we should rotate clockwise
+    car.overrideMotorSpeed(speed, -speed); // left motors spin forward, right motors spin backward
+  } else { //rotate counter clockwise
+    car.overrideMotorSpeed(-speed, speed); // left motors spin backward, right motors spin forward
+  }
+  unsigned int initialHeading = car.getHeading(); //the initial heading we'll use as offset to calculate the absolute displacement
+  int degreesTurnedSoFar = 0; //this variable will hold the absolute displacement from the beginning of the rotation
+  while (abs(degreesTurnedSoFar) < abs(targetDegrees)) { //while absolute displacement hasn't reached the (absolute) target, keep turning
+    car.update(); //update to integrate the latest heading sensor readings
+    int currentHeading = car.getHeading(); //in the scale of 0 to 360
+    if ((targetDegrees < 0) && (currentHeading > initialHeading)) { //if we are turning left and the current heading is larger than the
+      //initial one (e.g. started at 10 degrees and now we are at 350), we need to substract 360, so to eventually get a signed
+      currentHeading -= 360; //displacement from the initial heading (-20)
+    } else if ((targetDegrees > 0) && (currentHeading < initialHeading)) { //if we are turning right and the heading is smaller than the
+      //initial one (e.g. started at 350 degrees and now we are at 20), so to get a signed displacement (+30)
+      currentHeading += 360;
+    }
+    degreesTurnedSoFar = initialHeading - currentHeading; //degrees turned so far is initial heading minus current (initial heading
+    //is at least 0 and at most 360. To handle the "edge" cases we substracted or added 360 to currentHeading)
+  }
+  car.setSpeed(0); //we have reached the target, so stop the car
+}
+
