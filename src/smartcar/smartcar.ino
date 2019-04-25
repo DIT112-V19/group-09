@@ -31,6 +31,8 @@ int frontDistance;
 long duration, sideDistance;
 int wallDistance = 18;
 
+int stuckCounter = 0;
+
 void setup()
 {
   Serial.begin(9600); // Starting Serial Terminal
@@ -44,6 +46,7 @@ void setup()
 
 void loop()
 {
+  Serial.println("Hello");
   //gyro.update();
   frontDistance = front.getDistance();
 
@@ -55,34 +58,7 @@ void loop()
   digitalWrite(trigPinSide, LOW);
   duration = pulseIn(echoPinSide, HIGH);
   sideDistance = (duration / 2) / 29.1; //convert the distance to centimeters
-
-  /*  switch(state)
-    {
-      case STOPPED:
-        Serial.println("Stopped");
-        // TODO Fix bad code
-        if (frontDistance > 5)
-          state = DRIVING;
-        car.setSpeed(0);
-        break;
-      case DRIVING:
-        Serial.println("Driving");
-        movement();
-        break;
-      case TURN_LEFT:
-        Serial.println("Left");
-        turn(-90);
-        break;
-      case TURN_RIGHT:
-        Serial.println("Right");
-        turn(90);
-        break;
-    }
-
-    if(frontDistance <= 5 && frontDistance != 0)
-      state = STOPPED;
-    else*/
-
+  
   if (frontDistance < 20 && frontDistance != 0) {
 
     turnLeft();
@@ -91,37 +67,45 @@ void loop()
     if (sideDistance > 24 && sideDistance != 0) {
 
       turnRight();
+    } 
+  }
+  
+  drive();
+  handleStuck();
+  
+}
 
-    } else if (sideDistance <= (wallDistance + 3) && sideDistance >= wallDistance) {
+void handleStuck(){
+  if(car.getSpeed() <= 10){
+    stuckCounter++;
+  }else{
+    stuckCounter = 0;
+  }
 
-      driveF();
-      //Serial.println("front");
-      
-    } else if (sideDistance < wallDistance && sideDistance != 0) {
-      
-      //Serial.println("left");
-      leftTrajectoryCorrection();
-
-    } else if (sideDistance > (wallDistance + 3) && sideDistance != 0) {
-      
-      //Serial.println("right");
-      rightTrajectoryCorrection();
-
-    }
+  if(stuckCounter >= 5000){
+    stuckCounter = 0;
+    wallReverse();
   }
 }
 
+void wallReverse() {
+  car.overrideMotorSpeed(-SPEED, 0);
+  delay(450);
+}
+
+void drive() {
+    int power = (((SPEED / wallDistance) * sideDistance) - wallDistance) * 2;
+    if(constrain(power, -30, 30) < -26){
+      wallReverse();
+    }else{
+      car.overrideMotorSpeed(SPEED + constrain(power, -30, 30), SPEED + -constrain(power, -30, 30));
+    }
+}
 
 void handleBluetooth()
 {
   BTserial.print("HI MOM");
   delay(50);
-}
-
-void driveF()
-{
-  if (car.getSpeed() != SPEED)
-    car.setSpeed(SPEED);
 }
 
 void driveB()
@@ -131,17 +115,9 @@ void driveB()
 
 void turnLeft() {
   car.overrideMotorSpeed(-50, 50);
-  delay(150);
+  delay(200);
 }
 
 void turnRight() {
   car.overrideMotorSpeed(40,-20);
-}
-
-void leftTrajectoryCorrection() {
-  car.overrideMotorSpeed(20, SPEED);
-}
-
-void rightTrajectoryCorrection() {
-  car.overrideMotorSpeed(SPEED, 20);
 }
