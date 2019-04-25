@@ -13,8 +13,8 @@ GY50 gyro(GYROSCOPE_OFFSET);
 
 SmartCar car(control, gyro, leftOdometer, rightOdometer);
 
-//const int leftOdometer = 2;
-//const int rightOdometer = 3;
+const int leftOdometerPin = 2;
+const int rightOdometerPin = 3;
 
 const int trigPin = 4; // Front Trigger Pin of Ultrasonic Sensor
 const int echoPin = 5; // Front Echo Pin of Ultrasonic Sensor
@@ -38,6 +38,13 @@ void setup()
   Serial.begin(9600); // Starting Serial Terminal
   BTserial.begin(9600);
 
+  leftOdometer.attach(leftOdometerPin, [](){
+    leftOdometer.update();
+  });
+  rightOdometer.attach(rightOdometerPin, [](){
+    rightOdometer.update();
+  });
+
   pinMode(trigPinSide, OUTPUT);
   pinMode(echoPinSide, INPUT);
 
@@ -46,7 +53,14 @@ void setup()
 
 void loop()
 {
-  Serial.println("Hello");
+  if (Serial.available()) {
+    char input = Serial.read();
+    if (input == 's' && car.getSpeed() != 0){
+      car.setSpeed(0);
+      Serial.print(leftOdometer.getDistance());
+      Serial.print("\t\t");
+      Serial.print(rightOdometer.getDistance());
+    }
   //gyro.update();
   frontDistance = front.getDistance();
 
@@ -73,6 +87,7 @@ void loop()
   drive();
   handleStuck();
   
+}
 }
 
 void handleStuck(){
