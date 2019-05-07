@@ -50,17 +50,13 @@ void setup()
 
   car.setSpeed(SPEED);
 }
-
+float distanceAvg(){
+  (leftOdometer.getDistance()+ rightOdometer.getDistance())/2;
+  return;
+  }
 void loop()
 {
-  if (Serial.available()) {
-    char input = Serial.read();
-    if (input == 's' && car.getSpeed() != 0){
-      car.setSpeed(0);
-      Serial.print(leftOdometer.getDistance());
-      Serial.print("\t\t");
-      Serial.print(rightOdometer.getDistance());
-    }
+  manualMeasure();
   //gyro.update();
   frontDistance = front.getDistance();
 
@@ -88,7 +84,23 @@ void loop()
   handleStuck();
   
 }
-}
+
+void manualMeasure(){
+  if (Serial.available()){
+    char input = Serial.read();
+    if (input == 's' && car.getSpeed() !=0){
+      car.setSpeed(0);
+      float leftO = leftOdometer.getDistance();
+      float rightO = rightOdometer.getDistance();
+     float minO = ((leftO)<(rightO)?(leftO):(rightO));
+      Serial.print(leftO);
+      Serial.print("\n");
+      Serial.print(rightO);
+      Serial.print("\n");
+      Serial.print(minO);
+      } 
+    }
+  }
 
 void handleStuck(){
   if(car.getSpeed() <= 10){
