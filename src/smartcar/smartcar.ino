@@ -33,6 +33,7 @@ int wallDistance = 18;
 
 int stuckCounter = 0;
 
+
 void setup()
 {
   Serial.begin(9600); // Starting Serial Terminal
@@ -50,14 +51,17 @@ void setup()
 
   car.setSpeed(SPEED);
 }
+
 float distanceAvg(){
   (leftOdometer.getDistance()+ rightOdometer.getDistance())/2;
   return;
   }
+  
 void loop()
 {
-  manualMeasure();
+  //manualMeasure();
   //gyro.update();
+  
   frontDistance = front.getDistance();
 
   digitalWrite(trigPinSide, LOW);
@@ -70,37 +74,20 @@ void loop()
   sideDistance = (duration / 2) / 29.1; //convert the distance to centimeters
   
   if (frontDistance < 20 && frontDistance != 0) {
-
     turnLeft();
-
   } else {
     if (sideDistance > 24 && sideDistance != 0) {
-
       turnRight();
     } 
   }
   
   drive();
   handleStuck();
-  
 }
 
-void manualMeasure(){
-  if (Serial.available()){
-    char input = Serial.read();
-    if (input == 's' && car.getSpeed() !=0){
-      car.setSpeed(0);
-      float leftO = leftOdometer.getDistance();
-      float rightO = rightOdometer.getDistance();
-     float minO = ((leftO)<(rightO)?(leftO):(rightO));
-      Serial.print(leftO);
-      Serial.print("\n");
-      Serial.print(rightO);
-      Serial.print("\n");
-      Serial.print(minO);
-      } 
-    }
-  }
+float distanceToCM(float distance){
+  return (distance / 50) * 22;
+}
 
 void handleStuck(){
   if(car.getSpeed() <= 10){
@@ -141,8 +128,18 @@ void driveB()
 }
 
 void turnLeft() {
+  float leftO = leftOdometer.getDistance();
+  float rightO = rightOdometer.getDistance();
+  float avgDist = ((leftO + rightO)/2);
+  if(avgDist > 100){
+    Serial.print(distanceToCM(avgDist)+ 51);
+    Serial.println("CM");
+  }
   car.overrideMotorSpeed(-50, 50);
   delay(200);
+  car.setSpeed(0);
+  leftOdometer.reset();
+  rightOdometer.reset();
 }
 
 void turnRight() {
