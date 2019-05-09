@@ -59,7 +59,6 @@ float distanceAvg(){
   
 void loop()
 {
-  //manualMeasure();
   //gyro.update();
   
   frontDistance = front.getDistance();
@@ -74,15 +73,20 @@ void loop()
   sideDistance = (duration / 2) / 29.1; //convert the distance to centimeters
   
   if (frontDistance < 20 && frontDistance != 0) {
+    
     turnLeft();
+    
   } else {
     if (sideDistance > 24 && sideDistance != 0) {
+      
       turnRight();
+      
     } 
   }
   
   drive();
   handleStuck();
+  readBluetooth();
 }
 
 float distanceToCM(float distance){
@@ -116,10 +120,66 @@ void drive() {
     }
 }
 
-void handleBluetooth()
-{
-  BTserial.print("HI MOM");
-  delay(50);
+void readBluetooth(){
+  if(Serial.available() > 0){
+    
+    String content = "";
+    char character;
+  
+    if(Serial.available()) {
+        character = Serial.read();
+        handleManualControl(character);
+    }
+    if (content != "") {
+      //handleManualControl(content);
+    }
+  }
+}
+
+void handleManualControl(char character){
+  switch(character){
+    case '2': //FORWARD
+    car.setSpeed(SPEED);
+    break;
+    case '3': //FORWARD-RIGHT
+    car.overrideMotorSpeed(SPEED, SPEED);
+    break;
+    case '1': //FORWARD-LEFT
+    car.overrideMotorSpeed(SPEED, SPEED);
+    break;
+    case '8': //REAR
+    car.setSpeed(-SPEED);
+    break;
+    case '9': //REAR-RIGHT
+    car.overrideMotorSpeed(-SPEED, -SPEED);
+    break;
+    case '7': //READ-LEFT
+    car.overrideMotorSpeed(-SPEED, -SPEED);
+    break;
+    case '6': //RIGHT
+    printDistance();
+    car.overrideMotorSpeed(SPEED, -SPEED);
+    resetOdometer();
+    break;
+    case '4': //LEFT
+    printDistance();
+    car.overrideMotorSpeed(-SPEED, SPEED);
+    resetOdometer();
+    break;
+    case '5': //STOP
+    car.setSpeed(0);
+    break;
+  }
+}
+
+void printDistance(){
+  float distance = leftOdometer.getDistance();
+  Serial.println(distance);
+}
+
+void resetOdometer(){
+  leftOdometer.reset();
+  rightOdometer.reset();
 }
 
 void driveB()
