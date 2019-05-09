@@ -1,19 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.group9.dora">
+          xmlns:tools="http://schemas.android.com/tools" package="com.group9.dora">
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <application
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
-            android:label="@string/app_name"
+            android:label="@string/app_show_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme"
+            tools:ignore="GoogleAppIndexingWarning"
+            tools:replace="android:label">
         <activity
                 android:name=".MainActivity"
-                android:label="@string/app_name">
+                android:screenOrientation="portrait"
+                android:label="@string/app_name"
+                android:theme="@style/AppTheme"/>
+
+        <activity android:name=".SplashActivity"
+                  android:screenOrientation="portrait"
+                  android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

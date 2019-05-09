@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">Dora</string>
+    <string name="app_name">Dora - The Explorer</string>
+    <string name="app_show_name">D.O.R.A</string>
     <string name="title_mapping">Mapping</string>
     <string name="title_manual">Manual Controls</string>
 

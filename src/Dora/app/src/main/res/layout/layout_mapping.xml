@@ -1,39 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                                             xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent"
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
                                              android:layout_height="match_parent">
 
     <android.support.v7.widget.CardView
             android:layout_width="0dp"
-            android:layout_height="0dp" android:layout_marginBottom="32dp"
-            app:layout_constraintBottom_toTopOf="@+id/linearLayout" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_height="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
             android:layout_marginTop="32dp" android:layout_marginStart="32dp" android:layout_marginEnd="32dp"
-            app:cardCornerRadius="8dp" app:cardElevation="6dp">
+            app:cardCornerRadius="8dp" app:cardElevation="6dp" android:layout_marginBottom="32dp"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout2">
         <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent" android:id="@+id/canvas">
+            <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" tools:srcCompat="@tools:sample/avatars[14]"
+                    android:id="@+id/imageViewCanvas" android:scaleType="fitCenter"/>
         </LinearLayout>
     </android.support.v7.widget.CardView>
     <LinearLayout
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_width="0dp"
             android:layout_height="wrap_content" app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="16dp" app:layout_constraintStart_toStartOf="parent"
             android:layout_marginStart="32dp" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="32dp"
-            android:id="@+id/linearLayout">
+            android:id="@+id/linearLayout2">
         <Button
-                android:text="@string/title_start"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:id="@+id/button_start" android:layout_weight="1"
-                style="@style/Widget.AppCompat.Button.Colored" android:backgroundTint="@color/colorPrimary"
-                android:drawableStart="@drawable/icon_running"/>
-        <Button
-                android:text="@string/title_stop"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:id="@+id/button_stop" android:layout_weight="1"
-                style="@style/Widget.AppCompat.Button.Colored" android:backgroundTint="@color/colorPrimary"
-                android:drawableEnd="@drawable/icon_walk"/>
+                android:text="Connect via Bluetooth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:id="@+id/bluetooth_button"
+                style="@style/Widget.AppCompat.Button.Colored" android:backgroundTint="#3B5998"/>
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:id="@+id/linearLayout">
+            <Button
+                    android:text="@string/title_start"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/button_start" android:layout_weight="1"
+                    style="@style/Widget.AppCompat.Button.Colored" android:backgroundTint="@color/colorPrimary"
+                    android:drawableStart="@drawable/icon_running"/>
+            <Button
+                    android:text="@string/title_stop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/button_stop" android:layout_weight="1"
+                    style="@style/Widget.AppCompat.Button.Colored" android:backgroundTint="@color/colorPrimary"
+                    android:drawableEnd="@drawable/icon_walk"/>
+        </LinearLayout>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
