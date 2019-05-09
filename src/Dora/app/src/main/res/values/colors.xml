@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#b39ddb</color>
-    <color name="colorPrimaryDark">#b39ddb</color>
+    <color name="colorPrimary">#B185FF</color>
+    <color name="colorPrimaryDark">#B185FF</color>
     <color name="colorAccent">#212121</color>
 
     <color name="darkGrey">#212121</color>
     <color name="colorWhite">#FFF</color>
+
+    <color name="bluetoothColor">#3B5998</color>
+    <color name="abortColor">#D51717</color>
 </resources>
