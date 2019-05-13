@@ -53,11 +53,6 @@ void setup()
 
   car.setSpeed(SPEED);
 }
-
-float distanceAvg(){
-  (leftOdometer.getDistance()+ rightOdometer.getDistance())/2;
-  return;
-  }
   
 void loop()
 {
@@ -86,7 +81,7 @@ void autoDrive(){
   sideDistance = (duration / 2) / 29.1; //convert the distance to centimeters
   
   if (frontDistance < 20 && frontDistance != 0) {
-    
+   
     turnLeft();
     
   } else {
@@ -99,10 +94,6 @@ void autoDrive(){
   
   drive();
   handleStuck();
-}
-
-float distanceToCM(float distance){
-  return (distance / 50) * 22;
 }
 
 void handleStuck(){
@@ -171,12 +162,12 @@ void handleManualControl(char character){
     car.overrideMotorSpeed(-SPEED, -SPEED);
     break;
     case '6': //RIGHT
-    printDistance();
+    printDistanceManualControl();
     car.overrideMotorSpeed(SPEED, -SPEED);
     resetOdometer();
     break;
     case '4': //LEFT
-    printDistance();
+    printDistanceManualControl();
     car.overrideMotorSpeed(-SPEED, SPEED);
     resetOdometer();
     break;
@@ -186,7 +177,7 @@ void handleManualControl(char character){
   }
 }
 
-void printDistance(){
+void printDistanceManualControl(){
   float distance = leftOdometer.getDistance();
   Serial.println(distance);
 }
@@ -196,26 +187,32 @@ void resetOdometer(){
   rightOdometer.reset();
 }
 
-void driveB()
-{
-  car.setSpeed(-SPEED);
-}
-
 void turnLeft() {
-  float leftO = leftOdometer.getDistance();
-  float rightO = rightOdometer.getDistance();
-  float avgDist = ((leftO + rightO)/2);
-  if(avgDist > 100){
-    Serial.print(distanceToCM(avgDist)+ 51);
+  if(odometerAverageDistance() > 100){
+    Serial.print(distanceToCM(odometerAverageDistance())+ 51);
     Serial.println("CM");
   }
   car.overrideMotorSpeed(-50, 50);
   delay(200);
   car.setSpeed(0);
-  leftOdometer.reset();
-  rightOdometer.reset();
+  odometerReset();
 }
 
 void turnRight() {
   car.overrideMotorSpeed(40,-20);
+}
+
+void odometerReset(){
+  leftOdometer.reset();
+  rightOdometer.reset();
+} 
+
+float odometerAverageDistance(){
+  float leftO = leftOdometer.getDistance();
+  float rightO = rightOdometer.getDistance();
+  return ((leftO + rightO)/2);
+}
+
+float distanceToCM(float distance){
+  return (distance / 50) * 22;
 }
