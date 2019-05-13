@@ -57,12 +57,10 @@ void setup()
 void loop()
 {
   //gyro.update();
-  handleAutomaticControl(readBluetooth());
+  readBluetooth();
   
   if(automaticDriving){
     autoDrive();
-  }else{
-    handleManualControl(readBluetooth());
   }
 
   
@@ -123,9 +121,11 @@ void drive() {
     }
 }
 
-char readBluetooth(){
-  if(Serial.available()){
-        return Serial.read();
+void readBluetooth(){
+  while(Serial.available()){
+        char msg = Serial.read();
+        handleAutomaticControl(msg);
+        handleManualControl(msg);
     }
 }
 
@@ -195,17 +195,12 @@ void turnLeft() {
   car.overrideMotorSpeed(-50, 50);
   delay(200);
   car.setSpeed(0);
-  odometerReset();
+  resetOdometer();
 }
 
 void turnRight() {
   car.overrideMotorSpeed(40,-20);
 }
-
-void odometerReset(){
-  leftOdometer.reset();
-  rightOdometer.reset();
-} 
 
 float odometerAverageDistance(){
   float leftO = leftOdometer.getDistance();
