@@ -33,6 +33,8 @@ int wallDistance = 18;
 
 int stuckCounter = 0;
 
+bool automaticDriving = false;
+
 
 void setup()
 {
@@ -60,8 +62,19 @@ float distanceAvg(){
 void loop()
 {
   //gyro.update();
+  handleAutomaticControl(readBluetooth());
   
-  frontDistance = front.getDistance();
+  if(automaticDriving){
+    autoDrive();
+  }else{
+    handleManualControl(readBluetooth());
+  }
+
+  
+}
+
+void autoDrive(){
+    frontDistance = front.getDistance();
 
   digitalWrite(trigPinSide, LOW);
   delayMicroseconds(2); //delays are required for a successful sensor operation
@@ -86,7 +99,6 @@ void loop()
   
   drive();
   handleStuck();
-  readBluetooth();
 }
 
 float distanceToCM(float distance){
@@ -120,19 +132,21 @@ void drive() {
     }
 }
 
-void readBluetooth(){
-  if(Serial.available() > 0){
-    
-    String content = "";
-    char character;
-  
-    if(Serial.available()) {
-        character = Serial.read();
-        handleManualControl(character);
+char readBluetooth(){
+  if(Serial.available()){
+        return Serial.read();
     }
-    if (content != "") {
-      //handleManualControl(content);
-    }
+}
+
+void handleAutomaticControl(char character){
+  switch(character){
+    case 'G':
+      automaticDriving = true;
+    break;
+    case 'S':
+      automaticDriving = false;
+      car.setSpeed(0);
+    break;
   }
 }
 

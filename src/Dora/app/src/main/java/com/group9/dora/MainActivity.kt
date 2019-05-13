@@ -20,23 +20,41 @@ import java.lang.Compiler.enable
 
 class MainActivity : AppCompatActivity() {
 
+    var fragments: Array<Fragment> = arrayOf(fragment_mapping(), fragment_manualcontrols())
+
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
 
-        var fragment: Fragment = fragment_mapping()
 
         when (item.itemId) {
             R.id.navigation_mapping -> {
-                fragment = fragment_mapping()
+                supportFragmentManager
+                    .beginTransaction()
+                    .hide(fragments[1])
+                    .show(fragments[0])
+                    .commit()
             }
             R.id.navigation_manual -> {
-                fragment = fragment_manualcontrols()
+                supportFragmentManager
+                    .beginTransaction()
+                    .hide(fragments[0])
+                    .show(fragments[1])
+                    .commit()
+            }
+            else -> {
+                supportFragmentManager
+                    .beginTransaction()
+                    .hide(fragments[1])
+                    .show(fragments[0])
+                    .commit()
             }
         }
 
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.fragment_container, fragment)
-            .commit()
+
+
+
+
+
+
         true
     }
 
@@ -53,9 +71,15 @@ class MainActivity : AppCompatActivity() {
         navigation.setBackgroundColor(resources.getColor(R.color.colorPrimary))
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
+        initFragments()
+    }
+
+    fun initFragments(){
         supportFragmentManager
             .beginTransaction()
-            .add(R.id.fragment_container, fragment_mapping())
+            .add(R.id.fragment_container, fragments[0])
+            .add(R.id.fragment_container, fragments[1])
+            .hide(fragments[1])
             .commit()
     }
 

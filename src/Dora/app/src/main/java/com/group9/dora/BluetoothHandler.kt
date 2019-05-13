@@ -80,6 +80,7 @@ class BluetoothHandler(val context: Context, val activity: Activity) {
 
                 override fun onMessage(message: String) {
                     Log.d("BLUETOOTH MSG", message)
+                    Measure.verifyCoordinate(message)
                 }
 
                 override fun onError(message: String) {

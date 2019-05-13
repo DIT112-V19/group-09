@@ -1,6 +1,8 @@
 package com.group9.dora
 
+import android.app.AlertDialog
 import android.bluetooth.BluetoothAdapter
+import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
@@ -18,36 +20,104 @@ import kotlinx.android.synthetic.main.layout_manualcontrols.*
 
 class fragment_mapping : Fragment() {
 
+    lateinit var canvas: Canvas
+    lateinit var canvasBitmap: Bitmap
+    val paint = Paint()
+
+    var automaticMapping: Boolean = false
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.layout_mapping, container, false)
         bluetoothHandler(view)
-        drawCanvas(view)
+
+        val canvas = view.findViewById<ImageView>(R.id.imageViewCanvas)
+
+        canvasHandler(canvas)
+        buttonHandler(view)
+
         return view
     }
 
-    fun drawCanvas(view: View){
-        var bitMap = Bitmap.createBitmap(1000, 1000, Bitmap.Config.ARGB_8888)
+    fun buttonHandler(view: View){
+        val startButton = view.findViewById<Button>(R.id.button_start)
+        val stopButton = view.findViewById<Button>(R.id.button_stop)
 
-        bitMap = bitMap.copy(bitMap.config, true)
-        // Construct a canvas with the specified bitmap to draw into
-        val canvas = Canvas(bitMap)
-        // Create a new paint with default settings.
-        val paint = Paint()
-        // smooths out the edges of what is being drawn
+        if(!automaticMapping){
+            startButton.isEnabled = true
+            stopButton.isEnabled = false
+        }else{
+            startButton.isEnabled = false
+            stopButton.isEnabled = true
+        }
+
+        startButton.setOnClickListener {
+            if(BT.bluetooth.isConnected()) {
+                startButton.isEnabled = false
+                stopButton.isEnabled = true
+
+                BT.bluetooth.sendMessage("G")
+            }else{
+                AlertDialog.Builder(context)
+                    .setTitle("Bluetooth error")
+                    .setMessage("Bluetooth is not connected.\nCheck connection and try again.\uD83D\uDC4F")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setCancelable(false)
+                    .show()
+            }
+        }
+
+        stopButton.setOnClickListener {
+            if(BT.bluetooth.isConnected()) {
+                startButton.isEnabled = true
+                stopButton.isEnabled = false
+
+                BT.bluetooth.sendMessage("S")
+            }else{
+                AlertDialog.Builder(context)
+                    .setTitle("Bluetooth error")
+                    .setMessage("Bluetooth is not connected.\nCheck connection and try again.\uD83D\uDC4F")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setCancelable(false)
+                    .show()
+            }
+        }
+    }
+
+    fun canvasHandler(canvasImage: ImageView){
+        canvasImage.setOnClickListener {
+            AlertDialog.Builder(context)
+                .setTitle("Clear Mapping?")
+                .setMessage("Are you sure you want to clear the mapped area?")
+                .setPositiveButton(android.R.string.yes) { _, _ ->
+                    Measure.clearCoordinates()
+                    clearCanvas(canvasImage)
+                }
+                .setNegativeButton(android.R.string.no, null)
+                .setCancelable(false)
+                .show()
+        }
+
+        clearCanvas(canvasImage)
+    }
+
+    fun clearCanvas(canvasImage: ImageView){
+        if(::canvasBitmap.isInitialized)canvasBitmap.recycle()
+        canvasBitmap = Bitmap.createBitmap(1000, 1000, Bitmap.Config.ARGB_8888)
+        canvasBitmap = canvasBitmap.copy(canvasBitmap.config, true)
+        canvas = Canvas(canvasBitmap)
+        canvasImage.setImageBitmap(canvasBitmap)
         paint.isAntiAlias = true
-        // set color
         paint.color = Color.BLACK
-        // set style
         paint.style = Paint.Style.STROKE
-        // set stroke
-        paint.strokeWidth = 4.5f
-        // draw circle with radius 30
-        canvas.drawCircle(500f, 500f, 30f, paint)
-        paint.textSize = 60f
 
-        canvas.drawText("Susan is asian", 250f, 250f, paint)
-        // set on ImageView or any other view
-        view.findViewById<ImageView>(R.id.imageViewCanvas).setImageBitmap(bitMap)
+        //Values:
+        paint.strokeWidth = 4.5f
+        paint.textSize = 60f
+    }
+
+    fun drawCanvas(canvasImage: ImageView){
+        ///TODO: Convert coordinates to actual lines on bitmap
+        canvasImage.setImageBitmap(canvasBitmap)
     }
 
     fun bluetoothHandler(view: View){
