@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
                     .commit()
             }
             R.id.navigation_manual -> {
+                Measure.clearDistance()
                 supportFragmentManager
                     .beginTransaction()
                     .hide(fragments[0])

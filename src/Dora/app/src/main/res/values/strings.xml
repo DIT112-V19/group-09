@@ -8,4 +8,6 @@
     <string name="title_stop">STOP</string>
 
     <string name="textview_gamepad">Navigate by pressing in the desired direction</string>
+
+    <string name="distnaceTraveled">Distance traveled: %1$s cm</string>
 </resources>

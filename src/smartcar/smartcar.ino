@@ -9,38 +9,60 @@ BrushedMotor rightMotor(12, 13, 11);
 DifferentialControl control(leftMotor, rightMotor);
 DirectionlessOdometer leftOdometer(110);
 DirectionlessOdometer rightOdometer(120);
+
+DirectionlessOdometer mleftOdometer(110);
+DirectionlessOdometer mrightOdometer(120);
+
 GY50 gyro(GYROSCOPE_OFFSET);
 
 SmartCar car(control, gyro, leftOdometer, rightOdometer);
 
+// PINS
 const int leftOdometerPin = 2;
 const int rightOdometerPin = 3;
 
-const int trigPin = 4; // Front Trigger Pin of Ultrasonic Sensor
-const int echoPin = 5; // Front Echo Pin of Ultrasonic Sensor
+const int trigPinFront = 4; // Front Trigger Pin of Ultrasonic Sensor
+const int echoPinFront = 5; // Front Echo Pin of Ultrasonic Sensor
 
 const int trigPinSide = 6; // Side Trigger Pin of Ultrasonic Sensor
 const int echoPinSide = 7; // Side Echo Pin of Ultrasonic Sensor
 
-const unsigned int MAX_DISTANCE = 100;
-SR04 front(trigPin, echoPin, MAX_DISTANCE);
-SR04 side(trigPinSide, echoPinSide, MAX_DISTANCE);
+// VARIABLES
 
-int SPEED = 40;
-int frontDistance;
-long duration, sideDistance;
-int wallDistance = 18;
+int TARGET_SPEED = 40; //Default car speed
 
-int stuckCounter = 0;
+long duration;
+int gyroHeading;
+int lastGyroHeading;
+
+int targetSideDistance = 20; //Distance from side wall in CM
+
+int targetFrontDistance = 32; //Distnace from front wall in CM
+
+int acceptableFalloff = 5;
+
+long gyroDirection = 0;
 
 bool automaticDriving = false;
+
+const unsigned int MAX_DISTANCE = 100;
+SR04 front(trigPinFront, echoPinFront, MAX_DISTANCE);
+SR04 side(trigPinSide, echoPinSide, MAX_DISTANCE);
 
 
 void setup()
 {
+  // SERIAL
   Serial.begin(9600); // Starting Serial Terminal
-  BTserial.begin(9600);
 
+  // SENSOR
+  pinMode(trigPinSide, OUTPUT);
+  pinMode(echoPinSide, INPUT);
+
+  pinMode(trigPinFront, OUTPUT);
+  pinMode(echoPinFront, INPUT);
+
+  //OTHER
   leftOdometer.attach(leftOdometerPin, [](){
     leftOdometer.update();
   });
@@ -48,76 +70,104 @@ void setup()
     rightOdometer.update();
   });
 
-  pinMode(trigPinSide, OUTPUT);
-  pinMode(echoPinSide, INPUT);
+  mleftOdometer.attach(leftOdometerPin, [](){
+    mleftOdometer.update();
+  });
+  mrightOdometer.attach(rightOdometerPin, [](){
+    mrightOdometer.update();
+  });
 
-  car.setSpeed(SPEED);
 }
   
 void loop()
 {
-  //gyro.update();
-  readBluetooth();
-  
-  if(automaticDriving){
-    autoDrive();
-  }
+    gyro.update();
 
-  
-}
-
-void autoDrive(){
-    frontDistance = front.getDistance();
-
-  digitalWrite(trigPinSide, LOW);
-  delayMicroseconds(2); //delays are required for a successful sensor operation
-  digitalWrite(trigPinSide, HIGH);
-
-  delayMicroseconds(10); //this delay is required as well!
-  digitalWrite(trigPinSide, LOW);
-  duration = pulseIn(echoPinSide, HIGH);
-  sideDistance = (duration / 2) / 29.1; //convert the distance to centimeters
-  
-  if (frontDistance < 20 && frontDistance != 0) {
-   
-    turnLeft();
+    readBluetooth();
     
-  } else {
-    if (sideDistance > 24 && sideDistance != 0) {
-      
-      turnRight();
-      
-    } 
-  }
+    if(automaticDriving){
+      long sideDistance = getSideDistance();
+      long frontDistance = getFrontDistance();
   
-  drive();
-  handleStuck();
+      if(frontDistance > targetFrontDistance){
+        followSideWall(sideDistance);
+      }else{
+        frontWallReached();
+      }
+    }
+
+    handleCoordinates();
 }
 
-void handleStuck(){
-  if(car.getSpeed() <= 10){
-    stuckCounter++;
-  }else{
-    stuckCounter = 0;
+void handleCoordinates(){
+  float dir = gyro.getHeading();
+ 
+  if(dir != gyroDirection){
+
+     float distance = (rightOdometer.getDistance() + leftOdometer.getDistance())/2;
+     
+      float x = distance * sin(radians(gyroDirection));
+      float y = distance * cos(radians(gyroDirection));
+      Serial.print(-x);
+      Serial.print(",");
+      Serial.println(-y);
+     
+     resetOdometer();
+     gyroDirection = dir;
   }
-
-  if(stuckCounter >= 5000){
-    stuckCounter = 0;
-    wallReverse();
-  }
 }
 
-void wallReverse() {
-  car.overrideMotorSpeed(-SPEED, 0);
-  delay(450);
+void frontWallReached(){
+    int distance = getFrontDistance();
+    do {
+      car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
+      delay(5);
+    }while((getFrontDistance() < targetFrontDistance && getSideDistance() < distance));
 }
 
-void drive() {
-    int power = (((SPEED / wallDistance) * sideDistance) - wallDistance) * 2;
-    if(constrain(power, -30, 30) < -26){
-      wallReverse();
+void followSideWall(long sideDistance) {
+    if(sideDistance > targetSideDistance * 2){
+        car.overrideMotorSpeed(TARGET_SPEED, TARGET_SPEED/4);
+        delay(10);
+    }else if(sideDistance < 5){
+      car.overrideMotorSpeed(-TARGET_SPEED, -TARGET_SPEED);
+      delay(200);
     }else{
-      car.overrideMotorSpeed(SPEED + constrain(power, -30, 30), SPEED + -constrain(power, -30, 30));
+        sideDistance = constrain(sideDistance, 0, targetSideDistance * 2);
+        float offset = sideDistance / float(targetSideDistance);
+        car.overrideMotorSpeed(TARGET_SPEED * offset, TARGET_SPEED / offset);
+    }
+}
+
+long getSideDistance(){
+    digitalWrite(trigPinSide, LOW);
+    delayMicroseconds(2);
+    // Sets the trigPin on HIGH state for 10 micro seconds
+    digitalWrite(trigPinSide, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPinSide, LOW);
+    // Reads the echoPin, returns the sound wave travel time in microseconds to CM
+    float dist = distanceToCM(pulseIn(echoPinSide, HIGH));
+    if(dist != 0){
+      return dist;
+    }else{
+      return getSideDistance(); 
+    }
+}
+
+long getFrontDistance(){
+    digitalWrite(trigPinFront, LOW);
+    delayMicroseconds(2);
+    // Sets the trigPin on HIGH state for 10 micro seconds
+    digitalWrite(trigPinFront, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPinFront, LOW);
+    // Reads the echoPin, returns the sound wave travel time in microseconds to CM
+    float dist = distanceToCM(pulseIn(echoPinFront, HIGH));
+    if(dist != 0){
+      return dist;
+    }else{
+      return getFrontDistance(); 
     }
 }
 
@@ -138,37 +188,40 @@ void handleAutomaticControl(char character){
       automaticDriving = false;
       car.setSpeed(0);
     break;
+    default:
+      automaticDriving = false;
+      break;
   }
 }
 
 void handleManualControl(char character){
   switch(character){
     case '2': //FORWARD
-    car.setSpeed(SPEED);
+    car.overrideMotorSpeed(TARGET_SPEED,TARGET_SPEED);
     break;
     case '3': //FORWARD-RIGHT
-    car.overrideMotorSpeed(SPEED, SPEED);
+    car.overrideMotorSpeed(TARGET_SPEED, TARGET_SPEED);
     break;
     case '1': //FORWARD-LEFT
-    car.overrideMotorSpeed(SPEED, SPEED);
+    car.overrideMotorSpeed(TARGET_SPEED, TARGET_SPEED);
     break;
     case '8': //REAR
-    car.setSpeed(-SPEED);
+    car.overrideMotorSpeed(-TARGET_SPEED, -TARGET_SPEED);
     break;
     case '9': //REAR-RIGHT
-    car.overrideMotorSpeed(-SPEED, -SPEED);
+    car.overrideMotorSpeed(-TARGET_SPEED, -TARGET_SPEED);
     break;
     case '7': //READ-LEFT
-    car.overrideMotorSpeed(-SPEED, -SPEED);
+    car.overrideMotorSpeed(-TARGET_SPEED, -TARGET_SPEED);
     break;
     case '6': //RIGHT
-    printDistanceManualControl();
-    car.overrideMotorSpeed(SPEED, -SPEED);
+    odometerAverageDistance();
+    car.overrideMotorSpeed(TARGET_SPEED, -TARGET_SPEED);
     resetOdometer();
     break;
     case '4': //LEFT
-    printDistanceManualControl();
-    car.overrideMotorSpeed(-SPEED, SPEED);
+    odometerAverageDistance();
+    car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
     resetOdometer();
     break;
     case '5': //STOP
@@ -177,9 +230,16 @@ void handleManualControl(char character){
   }
 }
 
-void printDistanceManualControl(){
-  float distance = leftOdometer.getDistance();
-  Serial.println(distance);
+float odometerAverageDistance(){
+  float leftO = leftOdometer.getDistance();
+  float rightO = rightOdometer.getDistance();
+  return ((leftO + rightO)/2);
+}
+
+float modometerAverageDistance(){
+  float leftO = mleftOdometer.getDistance();
+  float rightO = mrightOdometer.getDistance();
+  return ((leftO + rightO)/2);
 }
 
 void resetOdometer(){
@@ -187,27 +247,11 @@ void resetOdometer(){
   rightOdometer.reset();
 }
 
-void turnLeft() {
-  if(odometerAverageDistance() > 100){
-    Serial.print(distanceToCM(odometerAverageDistance())+ 51);
-    Serial.println("CM");
-  }
-  car.overrideMotorSpeed(-50, 50);
-  delay(200);
-  car.setSpeed(0);
-  resetOdometer();
+void mresetOdometer(){
+  mleftOdometer.reset();
+  mrightOdometer.reset();
 }
 
-void turnRight() {
-  car.overrideMotorSpeed(40,-20);
-}
-
-float odometerAverageDistance(){
-  float leftO = leftOdometer.getDistance();
-  float rightO = rightOdometer.getDistance();
-  return ((leftO + rightO)/2);
-}
-
-float distanceToCM(float distance){
-  return (distance / 50) * 22;
+long distanceToCM(long distance){
+  return distance * 0.034/2;
 }

@@ -11,8 +11,8 @@ import android.view.ViewGroup
 import android.view.MotionEvent
 import android.widget.LinearLayout
 import android.content.DialogInterface
-
-
+import android.widget.TextView
+import java.util.*
 
 
 class fragment_manualcontrols : Fragment() {
@@ -23,39 +23,58 @@ class fragment_manualcontrols : Fragment() {
         val view = inflater.inflate(R.layout.layout_manualcontrols, container, false)
 
         setup(view)
+        distanceHandler(view)
 
         return view
+    }
+
+    fun distanceHandler(view: View){
+
+        val textView = view.findViewById<TextView>(R.id.textViewDistance)
+
+        val timerTask = object : TimerTask() {
+            override fun run() {
+                activity?.runOnUiThread {
+
+                    textView.text = getString(R.string.distnaceTraveled, String.format("%.2f",Measure.distanceTraveled))
+
+                }
+            }
+        }
+
+        val timer = Timer()
+        timer.scheduleAtFixedRate(timerTask, 0, 100L)
     }
 
 
     fun handleInput(x: Int, y: Int, width: Int, height: Int){
 
         if(isInBox(x, y, width, height, 1, 1)){
-            Log.d("APP", "Forward-left");
+            //Log.d("APP", "Forward-left");
             BT.bluetooth.sendMessage("1")
         }else if(isInBox(x, y, width, height, 2, 1)){
-            Log.d("APP", "Forward");
+            //Log.d("APP", "Forward");
             BT.bluetooth.sendMessage("2")
         }else if(isInBox(x, y, width, height, 3, 1)){
-            Log.d("APP", "Forward-right");
+            //Log.d("APP", "Forward-right");
             BT.bluetooth.sendMessage("3")
         }else if(isInBox(x, y, width, height, 1, 2)){
-            Log.d("APP", "Left");
+            //Log.d("APP", "Left");
             BT.bluetooth.sendMessage("4")
         }else if(isInBox(x, y, width, height, 2, 2)){
-            Log.d("APP", "Center");
+            //Log.d("APP", "Center");
             BT.bluetooth.sendMessage("5")
         }else if(isInBox(x, y, width, height, 3, 2)){
-            Log.d("APP", "Right");
+            //Log.d("APP", "Right");
             BT.bluetooth.sendMessage("6")
         }else if(isInBox(x, y, width, height, 1, 3)){
-            Log.d("APP", "Back-left");
+            //Log.d("APP", "Back-left");
             BT.bluetooth.sendMessage("7")
         }else if(isInBox(x, y, width, height, 2, 3)){
-            Log.d("APP", "Back");
+            //Log.d("APP", "Back");
             BT.bluetooth.sendMessage("8")
         }else if(isInBox(x, y, width, height, 3, 3)){
-            Log.d("APP", "Back-right");
+            //Log.d("APP", "Back-right");
             BT.bluetooth.sendMessage("9")
         }else{
             Log.d("APP", "No ducks found");
@@ -71,7 +90,7 @@ class fragment_manualcontrols : Fragment() {
     fun setup(v: View){
         val gamepadArea = v.findViewById<LinearLayout>(R.id.gamepad_area)
 
-        val handleTouch = View.OnTouchListener { v, event ->
+        val handleTouch = View.OnTouchListener { _, event ->
             val x = event.x.toInt()
             val y = event.y.toInt()
 
@@ -87,9 +106,9 @@ class fragment_manualcontrols : Fragment() {
                     AlertDialog.Builder(context)
                         .setTitle("Bluetooth error")
                         .setMessage("Bluetooth is not connected.\nCheck connection and try again.\uD83D\uDC4F")
-                        .setPositiveButton(android.R.string.ok, DialogInterface.OnClickListener { dialog, which ->
+                        .setPositiveButton(android.R.string.ok) { dialog, which ->
                             dialogAcknowledged = true
-                        })
+                        }
                         .setCancelable(false)
                         .show()
                 }
