@@ -37,7 +37,7 @@ int lastGyroHeading;
 
 int targetSideDistance = 20; //Distance from side wall in CM
 
-int targetFrontDistance = 32; //Distnace from front wall in CM
+int targetFrontDistance = 35; //Distnace from front wall in CM
 
 int acceptableFalloff = 5;
 
@@ -81,13 +81,16 @@ void setup()
   
 void loop()
 {
+ 
     gyro.update();
 
     readBluetooth();
+   
     
     if(automaticDriving){
       long sideDistance = getSideDistance();
       long frontDistance = getFrontDistance();
+      
   
       if(frontDistance > targetFrontDistance){
         followSideWall(sideDistance);
@@ -97,6 +100,14 @@ void loop()
     }
 
     handleCoordinates();
+    handleDistance();
+}
+
+void handleDistance(){
+  if(modometerAverageDistance() != 0){
+    Serial.print("#");
+    Serial.println(modometerAverageDistance());
+  }
 }
 
 void handleCoordinates(){
@@ -118,11 +129,10 @@ void handleCoordinates(){
 }
 
 void frontWallReached(){
-    int distance = getFrontDistance();
     do {
       car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
       delay(5);
-    }while((getFrontDistance() < targetFrontDistance && getSideDistance() < distance));
+    }while(getFrontDistance() < targetFrontDistance + acceptableFalloff  /*(getFrontDistance() < targetFrontDistance && getSideDistance() < targetSideDistance)*/);
 }
 
 void followSideWall(long sideDistance) {
@@ -137,6 +147,15 @@ void followSideWall(long sideDistance) {
         float offset = sideDistance / float(targetSideDistance);
         car.overrideMotorSpeed(TARGET_SPEED * offset, TARGET_SPEED / offset);
     }
+}
+
+int strap(int val, int min, int max)
+{
+    int p = max-min+1;
+    int mod = (val-min)%p;
+    if(mod<0)
+        mod += p;
+    return min+mod;
 }
 
 long getSideDistance(){
@@ -215,14 +234,12 @@ void handleManualControl(char character){
     car.overrideMotorSpeed(-TARGET_SPEED, -TARGET_SPEED);
     break;
     case '6': //RIGHT
-    odometerAverageDistance();
     car.overrideMotorSpeed(TARGET_SPEED, -TARGET_SPEED);
-    resetOdometer();
+    mresetOdometer();
     break;
     case '4': //LEFT
-    odometerAverageDistance();
     car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
-    resetOdometer();
+    mresetOdometer();
     break;
     case '5': //STOP
     car.setSpeed(0);
