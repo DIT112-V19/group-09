@@ -43,7 +43,7 @@ int acceptableFalloff = 5;
 
 long gyroDirection = 0;
 
-bool automaticDriving = false;
+bool automaticDriving = true;
 
 const unsigned int MAX_DISTANCE = 100;
 SR04 front(trigPinFront, echoPinFront, MAX_DISTANCE);
@@ -70,12 +70,12 @@ void setup()
     rightOdometer.update();
   });
 
-  mleftOdometer.attach(leftOdometerPin, [](){
+  /*mleftOdometer.attach(leftOdometerPin, [](){
     mleftOdometer.update();
   });
   mrightOdometer.attach(rightOdometerPin, [](){
     mrightOdometer.update();
-  });
+  });*/
 
 }
   
@@ -100,7 +100,7 @@ void loop()
     }
 
     handleCoordinates();
-    handleDistance();
+    //handleDistance();
 }
 
 void handleDistance(){
@@ -132,7 +132,7 @@ void frontWallReached(){
     do {
       car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
       delay(5);
-    }while(getFrontDistance() < targetFrontDistance + acceptableFalloff  /*(getFrontDistance() < targetFrontDistance && getSideDistance() < targetSideDistance)*/);
+    }while(getFrontDistance() < targetFrontDistance - acceptableFalloff  /*(getFrontDistance() < targetFrontDistance && getSideDistance() < targetSideDistance)*/);
 }
 
 void followSideWall(long sideDistance) {
@@ -149,14 +149,6 @@ void followSideWall(long sideDistance) {
     }
 }
 
-int strap(int val, int min, int max)
-{
-    int p = max-min+1;
-    int mod = (val-min)%p;
-    if(mod<0)
-        mod += p;
-    return min+mod;
-}
 
 long getSideDistance(){
     digitalWrite(trigPinSide, LOW);
@@ -170,7 +162,7 @@ long getSideDistance(){
     if(dist != 0){
       return dist;
     }else{
-      return getSideDistance(); 
+      return 99L; 
     }
 }
 
@@ -186,7 +178,7 @@ long getFrontDistance(){
     if(dist != 0){
       return dist;
     }else{
-      return getFrontDistance(); 
+      return 99L; 
     }
 }
 

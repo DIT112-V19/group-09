@@ -117,7 +117,9 @@ class fragment_mapping : Fragment() {
 
         //Values:
         paint.strokeWidth = paintStroke
-        paint.textSize = 60f
+        paint.textSize = 40f
+
+        paint.textAlign = Paint.Align.CENTER
 
 
         for(index in 0 until Measure.measurements.size){
@@ -185,69 +187,99 @@ class fragment_mapping : Fragment() {
     fun simulateRealArduinoCar(){
 
 
-        val timerTask = object : TimerTask() {
+        /*val timerTask = object : TimerTask() {
             override fun run() {
                 activity?.runOnUiThread {
+        */
         Measure.addCoordinate(RoomCoordinate(300f, -200f))
         Measure.addCoordinate(RoomCoordinate(100f, 500f))
-        Measure.addCoordinate(RoomCoordinate(-200f, -200f))
-        Measure.addCoordinate(RoomCoordinate(-100f, 100f))
+        Measure.addCoordinate(RoomCoordinate(-225f, -200f))
+        Measure.addCoordinate(RoomCoordinate(-125f, 100f))
         Measure.addCoordinate(RoomCoordinate(-500f, -200f))
         Measure.addCoordinate(RoomCoordinate(100f, 300f))
         Measure.addCoordinate(RoomCoordinate(400f, 200f))
+        /*
                 }
             }
         }
 
             val timer = Timer()
-            timer.scheduleAtFixedRate(timerTask, 0, 1000L)
+            timer.scheduleAtFixedRate(timerTask, 0, 1000L)*/
     }
 
     fun drawCanvas(canvasImage: ImageView){
-        ///TODO: Convert coordinates to actual lines on bitmap
 
         val timerTask = object : TimerTask() {
             override fun run() {
                 activity?.runOnUiThread {
-
-                    clearCanvas(canvasImage)
+                        clearCanvas(canvasImage)
 
                     var scaleFactor = 1f
 
                     val potentialScaleX = (canvasSizeX / ((highestValueX() - lowestValueX()) + (paint.strokeWidth * 2)))
                     val potentialScaleY = (canvasSizeY / ((highestValueY() - lowestValueY()) + (paint.strokeWidth * 2)))
 
-                    if(potentialScaleX < 1 || potentialScaleY < 1){
-                        if(potentialScaleX < potentialScaleY){
-                            scaleFactor = potentialScaleX
-                        }else{
-                            scaleFactor = potentialScaleY
+                    if (potentialScaleX < 1 || potentialScaleY < 1) {
+                        if (potentialScaleX < potentialScaleY) {
+                            scaleFactor = potentialScaleX * 0.9f
+                        } else {
+                            scaleFactor = potentialScaleY * 0.9f
                         }
                     }
 
                     paint.strokeWidth = paintStroke * scaleFactor
 
-                    val offsetX = ((canvasSizeX/2) - (lowestValueX() * scaleFactor + highestValueX() * scaleFactor)/2)
-                    val offsetY = ((canvasSizeY/2) - (lowestValueY() * scaleFactor + highestValueY() * scaleFactor)/2)
+                    val offsetX =
+                        ((canvasSizeX / 2) - (lowestValueX() * scaleFactor + highestValueX() * scaleFactor) / 2)
+                    val offsetY =
+                        ((canvasSizeY / 2) - (lowestValueY() * scaleFactor + highestValueY() * scaleFactor) / 2)
 
 
                     var posX = 0f
                     var posY = 0f
+                    var lastColor: Int = Color.YELLOW
 
-                    for(index in 0 until Measure.measurements.size){
-                        if(!Measure.measurements[index].hasBeenDrawn){
+                    for (index in 0 until Measure.measurements.size) {
+                        if (!Measure.measurements[index].hasBeenDrawn) {
+                            if (Math.abs(Measure.measurements[index].positionX) >= Math.abs(Measure.measurements[index].positionY)) {
+                                paint.color = Color.BLUE
+                            } else {
+                                paint.color = Color.RED
+                            }
+
+                            if(lastColor != paint.color){
+                                lastColor = paint.color
+
+
+                                Log.d("APP", "Drawing line. Dots collected: " + Measure.dominantLine.size)
+                                Measure.drawDominantText(canvas)
+                                Measure.dominantLine.clear()
+                            }
+
                             Measure.measurements[index].hasBeenDrawn = true
-                            canvas.drawLine((posX * scaleFactor) + offsetX, (posY * scaleFactor) + offsetY,((posX + Measure.measurements[index].positionX) * scaleFactor) + offsetX, ((posY + Measure.measurements[index].positionY) * scaleFactor) + offsetY, paint);
+                            canvas.drawLine(
+                                (posX * scaleFactor) + offsetX,
+                                (posY * scaleFactor) + offsetY,
+                                ((posX + Measure.measurements[index].positionX) * scaleFactor) + offsetX,
+                                ((posY + Measure.measurements[index].positionY) * scaleFactor) + offsetY,
+                                paint
+                            )
+                            if(Measure.dominantLine.isEmpty()){
+                                Measure.dominantLine.add(RoomCoordinate((posX * scaleFactor) + offsetX, (posY * scaleFactor) + offsetY))
+                            }
+                            Measure.dominantLine.add(
+                                RoomCoordinate(((posX + Measure.measurements[index].positionX) * scaleFactor) + offsetX, ((posY + Measure.measurements[index].positionY) * scaleFactor) + offsetY)
+                            )
+
                         }
                         posX += Measure.measurements[index].positionX
                         posY += Measure.measurements[index].positionY
                     }
 
                     canvasImage.setImageBitmap(canvasBitmap)
-
+                }
                 }
             }
-        }
 
         val timer = Timer()
         timer.scheduleAtFixedRate(timerTask, 0, 250L)
