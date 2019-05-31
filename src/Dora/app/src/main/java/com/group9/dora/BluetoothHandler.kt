@@ -18,9 +18,11 @@ import me.aflak.bluetooth.BluetoothCallback
 
 
 
-class BluetoothHandler(val context: Context, val activity: Activity) {
+class BluetoothHandler(private val context: Context, val activity: Activity) {
 
         var bluetooth: Bluetooth
+        lateinit var startButton: Button
+        lateinit var stopButton: Button
 
         init {
             bluetooth = Bluetooth(context)
@@ -46,7 +48,7 @@ class BluetoothHandler(val context: Context, val activity: Activity) {
             bluetooth.removeBluetoothCallback()
             bluetooth.removeCommunicationCallback()
             bluetooth.removeDiscoveryCallback()
-            bluetooth.onStop()
+            if(bluetooth.isEnabled)bluetooth.onStop()
         }
 
         fun connect(macAddress: String, btButton: Button){
@@ -80,6 +82,8 @@ class BluetoothHandler(val context: Context, val activity: Activity) {
 
                 override fun onMessage(message: String) {
                     Log.d("BLUETOOTH MSG", message)
+                    Measure.verifyCoordinate(message)
+                    Measure.verifyDistance(message)
                 }
 
                 override fun onError(message: String) {
@@ -131,5 +135,7 @@ class BluetoothHandler(val context: Context, val activity: Activity) {
         button.isEnabled = true
         button.text = "Connect via Bluetooth"
         button.backgroundTintList = context.resources.getColorStateList(R.color.bluetoothColor)
+        if(::startButton.isInitialized)startButton.isEnabled = true
+        if(::stopButton.isInitialized)stopButton.isEnabled = false
     }
 }

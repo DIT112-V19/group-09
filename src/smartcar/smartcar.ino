@@ -43,7 +43,9 @@ int acceptableFalloff = 5;
 
 long gyroDirection = 0;
 
-bool automaticDriving = true;
+bool automaticDriving = false;
+
+bool wallReached = false;
 
 const unsigned int MAX_DISTANCE = 100;
 SR04 front(trigPinFront, echoPinFront, MAX_DISTANCE);
@@ -96,6 +98,7 @@ void loop()
         followSideWall(sideDistance);
       }else{
         frontWallReached();
+        wallReached = true;
       }
     }
 
@@ -119,9 +122,12 @@ void handleCoordinates(){
      
       float x = distance * sin(radians(gyroDirection));
       float y = distance * cos(radians(gyroDirection));
+      if(wallReached)Serial.print('Q');
       Serial.print(-x);
       Serial.print(",");
       Serial.println(-y);
+
+      wallReached = false;
      
      resetOdometer();
      gyroDirection = dir;
@@ -129,10 +135,13 @@ void handleCoordinates(){
 }
 
 void frontWallReached(){
+      car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
+      delay(700);
+  /*
     do {
       car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
       delay(5);
-    }while(getFrontDistance() < targetFrontDistance - acceptableFalloff  /*(getFrontDistance() < targetFrontDistance && getSideDistance() < targetSideDistance)*/);
+    }while(getFrontDistance() < targetFrontDistance - acceptableFalloff);*/
 }
 
 void followSideWall(long sideDistance) {
@@ -227,13 +236,14 @@ void handleManualControl(char character){
     break;
     case '6': //RIGHT
     car.overrideMotorSpeed(TARGET_SPEED, -TARGET_SPEED);
+    mresetOdometer();
     break;
     case '4': //LEFT
     car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
+    mresetOdometer();
     break;
     case '5': //STOP
     car.setSpeed(0);
-    mresetOdometer();
     break;
   }
 }
