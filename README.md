@@ -30,3 +30,7 @@ Arduino IDE/Visual Studio Code was used to implement the features of the car, wh
 ## Setup and Getting Started
 In order to start using the car, the user needs to have the mobile application DORA on their Android device. The user has to pair their device with the car (the Bluetooth they have to look for is called DIT112) in the phone settings. 
 Once the two are paired, the user can run the application. In the application, a button called 'CONNECT VIA BLUETOOTH' should be clicked. Once connected, the app can fully be used by the user - the initial screen is that of the automated sequence to measure and map the room (with buttons START and STOP). The manual control can be accessed by switching to the tab on the bottom (Manual Controlling).
+
+## Difficulties and Known Issues
+The mapping which results in the automated measuring sequence is fairly unreliable and inaccurate regarding the trajectory visualization, and the developing team found that the culprit is likely the gyroscope module that the car is using, as it provides misinterpreted readings when the car corrects its trajectory along the wall. Despite this, while in manual control, the mapping which results at the end of a manually-controlled journey, is correct and accurate.
+The team reckons that a car with better or higher quality hardware could possibly fix the mapping inconsistencies noticed in the automated measuring.
