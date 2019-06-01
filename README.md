@@ -1,4 +1,6 @@
 # Group 09 (Team 🐿)
+Showcase video found at https://youtu.be/Bo9d2Y1cg9M
+
 
 ## What?   
 A room mapping device that measures the dimensions of a room or a space within a room using an intuitive mobile application as the interface. Real time measurements are shown to the user with the car mapping. The measuring process is automated, while if the user wants to measure a distance that is not a full room (for example, one wall or part of a wall), they have the possibility of controlling the car manually for a specific distance.
