@@ -29,7 +29,7 @@ const int echoPinSide = 7; // Side Echo Pin of Ultrasonic Sensor
 
 // VARIABLES
 
-int TARGET_SPEED = 40; //Default car speed
+int TARGET_SPEED = 35; //Default car speed
 
 long duration;
 int gyroHeading;
@@ -43,7 +43,9 @@ int acceptableFalloff = 5;
 
 long gyroDirection = 0;
 
-bool automaticDriving = true;
+bool automaticDriving = false;
+
+bool wallReached = false;
 
 const unsigned int MAX_DISTANCE = 100;
 SR04 front(trigPinFront, echoPinFront, MAX_DISTANCE);
@@ -70,13 +72,6 @@ void setup()
     rightOdometer.update();
   });
 
-  /*mleftOdometer.attach(leftOdometerPin, [](){
-    mleftOdometer.update();
-  });
-  mrightOdometer.attach(rightOdometerPin, [](){
-    mrightOdometer.update();
-  });*/
-
 }
   
 void loop()
@@ -96,6 +91,7 @@ void loop()
         followSideWall(sideDistance);
       }else{
         frontWallReached();
+        wallReached = true;
       }
     }
 
@@ -119,9 +115,12 @@ void handleCoordinates(){
      
       float x = distance * sin(radians(gyroDirection));
       float y = distance * cos(radians(gyroDirection));
+      if(wallReached)Serial.print('Q');
       Serial.print(-x);
       Serial.print(",");
       Serial.println(-y);
+
+      wallReached = false;
      
      resetOdometer();
      gyroDirection = dir;
@@ -129,10 +128,13 @@ void handleCoordinates(){
 }
 
 void frontWallReached(){
+      car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
+      delay(700);
+  /*
     do {
       car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
       delay(5);
-    }while(getFrontDistance() < targetFrontDistance - acceptableFalloff  /*(getFrontDistance() < targetFrontDistance && getSideDistance() < targetSideDistance)*/);
+    }while(getFrontDistance() < targetFrontDistance - acceptableFalloff);*/
 }
 
 void followSideWall(long sideDistance) {
@@ -211,7 +213,8 @@ void handleManualControl(char character){
     car.overrideMotorSpeed(TARGET_SPEED,TARGET_SPEED);
     break;
     case '3': //FORWARD-RIGHT
-    car.overrideMotorSpeed(TARGET_SPEED, TARGET_SPEED);
+    //car.overrideMotorSpeed(TARGET_SPEED, TARGET_SPEED);
+    wallReached = true;
     break;
     case '1': //FORWARD-LEFT
     car.overrideMotorSpeed(TARGET_SPEED, TARGET_SPEED);
@@ -227,13 +230,15 @@ void handleManualControl(char character){
     break;
     case '6': //RIGHT
     car.overrideMotorSpeed(TARGET_SPEED, -TARGET_SPEED);
+    mresetOdometer();
     break;
     case '4': //LEFT
     car.overrideMotorSpeed(-TARGET_SPEED, TARGET_SPEED);
+    mresetOdometer();
     break;
     case '5': //STOP
     car.setSpeed(0);
-    mresetOdometer();
+   
     break;
   }
 }
@@ -244,21 +249,12 @@ float odometerAverageDistance(){
   return ((leftO + rightO)/2);
 }
 
-float modometerAverageDistance(){
-  float leftO = mleftOdometer.getDistance();
-  float rightO = mrightOdometer.getDistance();
-  return ((leftO + rightO)/2);
-}
 
 void resetOdometer(){
   leftOdometer.reset();
   rightOdometer.reset();
 }
 
-void mresetOdometer(){
-  mleftOdometer.reset();
-  mrightOdometer.reset();
-}
 
 long distanceToCM(long distance){
   return distance * 0.034/2;

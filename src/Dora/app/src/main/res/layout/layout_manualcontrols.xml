@@ -18,5 +18,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:id="@+id/textView" android:textColor="@color/darkGrey"
                 android:text="@string/textview_gamepad" android:textAlignment="center"/>
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:id="@+id/textViewDistance"
+                android:textColor="@color/darkGrey"
+                android:textAlignment="center" android:textSize="14sp"
+                android:textStyle="italic"/>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
