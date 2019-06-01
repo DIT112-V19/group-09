@@ -29,7 +29,7 @@ const int echoPinSide = 7; // Side Echo Pin of Ultrasonic Sensor
 
 // VARIABLES
 
-int TARGET_SPEED = 40; //Default car speed
+int TARGET_SPEED = 35; //Default car speed
 
 long duration;
 int gyroHeading;
@@ -71,13 +71,6 @@ void setup()
   rightOdometer.attach(rightOdometerPin, [](){
     rightOdometer.update();
   });
-
-  /*mleftOdometer.attach(leftOdometerPin, [](){
-    mleftOdometer.update();
-  });
-  mrightOdometer.attach(rightOdometerPin, [](){
-    mrightOdometer.update();
-  });*/
 
 }
   
@@ -220,7 +213,8 @@ void handleManualControl(char character){
     car.overrideMotorSpeed(TARGET_SPEED,TARGET_SPEED);
     break;
     case '3': //FORWARD-RIGHT
-    car.overrideMotorSpeed(TARGET_SPEED, TARGET_SPEED);
+    //car.overrideMotorSpeed(TARGET_SPEED, TARGET_SPEED);
+    wallReached = true;
     break;
     case '1': //FORWARD-LEFT
     car.overrideMotorSpeed(TARGET_SPEED, TARGET_SPEED);
@@ -244,6 +238,7 @@ void handleManualControl(char character){
     break;
     case '5': //STOP
     car.setSpeed(0);
+   
     break;
   }
 }
@@ -254,21 +249,12 @@ float odometerAverageDistance(){
   return ((leftO + rightO)/2);
 }
 
-float modometerAverageDistance(){
-  float leftO = mleftOdometer.getDistance();
-  float rightO = mrightOdometer.getDistance();
-  return ((leftO + rightO)/2);
-}
 
 void resetOdometer(){
   leftOdometer.reset();
   rightOdometer.reset();
 }
 
-void mresetOdometer(){
-  mleftOdometer.reset();
-  mrightOdometer.reset();
-}
 
 long distanceToCM(long distance){
   return distance * 0.034/2;
